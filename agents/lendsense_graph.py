@@ -10,15 +10,29 @@ from langchain_core.messages import HumanMessage, ToolMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
+from langchain_core.messages import HumanMessage, ToolMessage, SystemMessage 
 # from langgraph.checkpoint.memory import MemorySaver
 from langgraph.checkpoint.sqlite import SqliteSaver
 import sqlite3
-
 
 from tools.loan_calc import run_loan_calc
 from tools.eligibility import check_eligibility
 from tools.doc_parser import parse_pan, parse_aadhaar
 from memory.mcp_memory import MCPMemory
+
+SYSTEM_MSG = SystemMessage(
+    content=(
+        "You are **LendSense**, an AI assistant that helps both loan-officers "
+        "and end-customers assess mortgage / loan eligibility.\n"
+        "• Be concise, friendly, and accurate.\n"
+        "• When data is missing or uncertain, ask follow-up questions.\n"
+        "• Use the available tools (LoanCalculator, EligibilityChecker, "
+        "DocumentParser, TavilySearch).\n"
+        "• If you are unsure or need domain escalation, or if the user asks to "
+        "be transferred to a human, respond exactly with: "
+        "\"Taking expert human opinion\" and provide a brief rationale."
+    )
+)
 
 LLM = init_chat_model("google_genai:gemini-2.0-flash", temperature=0.1)
 
@@ -79,10 +93,11 @@ def run_lendsense(user_text: str, thread_id: str = "default") -> str:
     `thread_id` keeps memory separate for parallel conversations.
     """
     user_msg = HumanMessage(content=user_text)
+    initial_msgs = [SYSTEM_MSG, user_msg]
     
     config = {"configurable": {"thread_id": thread_id}}
     final_state = None
-    for state in graph.stream({"messages": [user_msg]}, config, stream_mode="values"):
+    for state in graph.stream({"messages": initial_msgs}, config, stream_mode="values"):
         final_state = state
         # adds each state to final_state object
 

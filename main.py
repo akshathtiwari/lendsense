@@ -7,4 +7,4 @@ while True:
     if user.lower() in {"exit", "quit"}:
         break
     
-    print("Assistant:", run_lendsense(user, thread_id="2"))
+    print("Assistant:", run_lendsense(user, thread_id="4"))

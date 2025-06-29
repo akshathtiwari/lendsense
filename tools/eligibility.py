@@ -1,19 +1,15 @@
 def check_eligibility(net_salary: float, emi: float, ltv: float) -> dict:
     """
-    Simple FOIR rule:
-      • EMI must be ≤ 40% of net_salary
-      • LTV must be ≤ 80%
-    Returns:
-      {
-        "foir_ok": bool,
-        "ltv_ok": bool,
-        "eligible": bool
-      }
+    FOIR <= 40 %  and  LTV <= 80 %.
+    Accepts ltv as fraction (0.70) or percentage (70 / 70.0).
     """
-    foir_ok = emi <= 0.4 * net_salary
-    ltv_ok = ltv <= 0.80
+    # Normalise LTV
+    ltv_fraction = ltv / 100 if ltv > 1 else ltv
+
+    foir_ok = emi <= 0.40 * net_salary
+    ltv_ok  = ltv_fraction <= 0.80
     return {
         "foir_ok": foir_ok,
-        "ltv_ok": ltv_ok,
+        "ltv_ok":  ltv_ok,
         "eligible": foir_ok and ltv_ok
     }
